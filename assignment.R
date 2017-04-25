@@ -26,8 +26,7 @@ location.2012 <- select(any_drinking, state, location, contains("_2012"))
 location.2012 <- mutate(location.2012, difference = males_2012 - females_2012)
 
 # Write your 2012 data to a .csv file in your `output/` directory with an expressive filename
-write.csv(location.2012, 'output/location.201
-          2.csv', row.names = FALSE)
+write.csv(location.2012, 'output/location.2012.csv', row.names = FALSE)
 
 # Are there any locations where females drink more than males?
 # Your answer should be a *dataframe* of the locations, states, and differences for all locations (no extra columns)
@@ -41,20 +40,22 @@ filter(location.2012, difference == min(abs(difference))) %>% select(location, s
 # As you've (hopefully) noticed, the `location` column includes national, state, and county level estimates. 
 # However, many audiences may only be interested in the *state* level data. Given that, you should do the following:
 # Create a new variable that is only the state level observations in 2012
-state.2012 <- filter(location.2012, state == location)
+state.2012 <- filter(location.2012, state == location) %>% distinct()
 
 # Which state had the **highest** drinking rate for both sexes combined? 
 # Your answer should be a *dataframe* of the state and value of interest (no extra columns)
-highest.2012 <- filter(location.2012, both_sexes_2012 == max(both_sexes_2012)) %>% select(state, highest = both_sexes_2012)
+filter(location.2012, both_sexes_2012 == max(both_sexes_2012)) %>% select(state, highest = both_sexes_2012)
+highest.2012 <- filter(state.2012, both_sexes_2012 == max(both_sexes_2012)) %>% select(state, highest = both_sexes_2012)
 
 # Which state had the **lowest** drinking rate for both sexes combined?
 # Your answer should be a *dataframe* of the state and value of interest (no extra columns)
 lowest.2012 <- filter(location.2012, both_sexes_2012 == min(both_sexes_2012)) %>% select(state, lowest = both_sexes_2012)
+lowest.2012 <- filter(state.2012, both_sexes_2012 == min(both_sexes_2012)) %>% select(state, lowest = both_sexes_2012)
 
 # What was the difference in (any-drinking) prevalence between the state with the highest level of consumption, 
 # and the state with the lowest level of consumption?
 # Your answer should be a single value (a dataframe storing one value is fine)
-highest.2012 %>% select(difference) - lowest.2012 %>% select(difference)
+highest.2012 %>% select(highest) - lowest.2012 %>% select(lowest)
 
 # Write your 2012 state data to an appropriately named file in your `output/` directory
 write.csv(state.2012, 'output/state.2012.csv', row.names = FALSE)
@@ -88,7 +89,7 @@ summarise(counties, mean = mean(both_sexes_2012))
 # Your answer should contain 50 values (one for each state), unless there are two counties in a state with the same value
 # Your answer should be a *dataframe* with the value of interest, location, and state
 min.ineachstate <- counties %>% group_by(state) %>% summarise(location = first(location), min = min(both_sexes_2012))
-#min.ineachstate <- counties %>% group_by(state) %>% filter(both_sexes_2012 == min(both_sexes_2012)) %>% select(state, location, both_sexes_2012)
+#min.ineachstate <- counties %>% group_by(state) %>% filter(both_sexes_2012 == min(both_sexes_2012)) %>% select(state, location, both_sexes_2012) %>% distinct()
 
 # What is the maximum county level of binge drinking in each state (in 2012 for both sexes)? 
 # Your answer should be a *dataframe* with the value of interest, location, and state
@@ -97,7 +98,7 @@ counties %>% group_by(state) %>% filter(both_sexes_2012 == max(both_sexes_2012))
 
 # What is the county with the largest increase in male binge drinking between 2002 and 2012?
 # Your answer should include the county, state, and value of interest
-counties %>% mutate(increase = males_2012 - males_2002) %>% filter(increase == max(increase)) %>% select(state, location, increase)
+counties %>% mutate(increase = males_2012 - males_2002) %>% filter(increase == max(increase)) %>% select(location, state, increase)
 
 # How many counties experienced an increase in male binge drinking between 2002 and 2012?
 # Your answer should be an integer (a dataframe with only one value is fine)
@@ -120,7 +121,8 @@ female.precent.increase <- round(female.increase / female.total * 100, 2)
 # How many counties experienced a rise in female binge drinking *and* a decline in male binge drinking?
 # Your answer should be an integer (a dataframe with only one value is fine)
 nrow(counties %>% mutate(increase.female = females_2012 - females_2002, increase.male = males_2012 - males_2002) %>% filter(increase.female > 0, increase.male < 0))
-                                  
+nrow(counties %>% mutate(increase.female = females_2012 - females_2002, increase.male = males_2012 - males_2002) %>% filter(increase.female > 0 & increase.male < 0))
+
 ################################### Joining Data ###################################
 # You'll often have to join different datasets together in order to ask more involved questions of your dataset. 
 # In order to join our datasets together, you'll have to rename their columns to differentiate them
